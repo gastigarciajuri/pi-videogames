@@ -23,6 +23,7 @@ const getApiInfo = async () => {
       name: e.name,
       genres: e.genres.map((x) => x),
       description: e.description,
+      releasedDate: e.released,
       rating: e.rating,
       platforms: e.platforms.map((x) => x),
       id: e.id,
@@ -108,4 +109,35 @@ router.get("/genres", async (req, res) => {
     console.log(error);
   }
 });
+
+router.post("/videogame", async (req, res, next)=>{
+  let {
+    name, 
+    description,
+    released,
+    image,
+    rating,
+    genres,
+    platforms
+  } = req.body
+  console.log(req.body)
+try {
+  let videogameCreated = await Videogame.create({  
+    name, 
+    description,
+    released,
+    image: image ? image  : "https://es.123rf.com/photo_94358880_bocadillo-de-di%C3%A1logo-c%C3%B3mico-retro-con-error-de-p%C3%A1gina-de-internet-404-en-estilo-pop-art-globo-de-c%C3%B3mic-de-vect.html",
+    rating,
+    platforms,
+    createdInDb: true,
+  })
+  let genreDb = await Genres.findAll({
+    where: { name: genres }
+  })
+  videogameCreated.addGenre(genreDb);
+  res.send("Videojuego creado correctamente")
+} catch (error) {
+  next(error)
+}
+})
 module.exports = router;
