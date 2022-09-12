@@ -17,8 +17,23 @@
 //     =====`-.____`.___ \_____/___.-`___.-'=====
 //                       `=---='
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const { default: axios } = require('axios');
 const server = require('./src/app.js');
 const { conn } = require('./src/db.js');
+
+
+// async function saveGenres(){
+//  await axios.get(`https://api.rawg.io/api/games?key=${YOUR_API_KEY}`)
+//   .then( x => {
+//     x.data.results.map(async (g) => {
+//       await Genres.create({
+//         id: g.id,
+//         name: g.name,
+//       })
+//     })
+//   })
+// }
+// saveGenres();
 
 // Syncing all the models at once.
 conn.sync({ force: true }).then(() => {

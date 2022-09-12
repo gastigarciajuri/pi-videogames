@@ -14,18 +14,16 @@ const router = Router();
 // Ejemplo: router.use('/auth', authRouter);
 
 const getApiInfo = async () => {
-  const apiUrl = await axios.get(
-    `https://api.rawg.io/api/games?key=${YOUR_API_KEY}`
-  );
+  const apiUrl = await axios.get(`https://api.rawg.io/api/games?key=${YOUR_API_KEY}`);
   const apiInfo = await apiUrl.data.results.map((e) => {
     return {
       image: e.background_image,
       name: e.name,
-      genres: e.genres.map((x) => x),
+      genres: e.genres.map((x) => x.name),
       description: e.description,
       releasedDate: e.released,
       rating: e.rating,
-      platforms: e.platforms.map((x) => x),
+      platforms: e.platforms.map((x) => x.platform.name),
       id: e.id,
     };
   });
@@ -33,16 +31,18 @@ const getApiInfo = async () => {
 };
 
 const getDbInfo = async () => {
-  return await Videogame.findAll({
-    include: {
-      model: Genres,
-      attributes: ["name"],
-      through: {
-        attributes: [],
+    return await Videogame.findAll({
+      include: {
+        model: Genres,
+        attributes: ["name"],
+        through: {
+          attributes: [],
+        },
       },
     },
-  });
-};
+  );
+}
+
 
 const getAllGames = async () => {
   const apiInfo = await getApiInfo();
@@ -51,7 +51,18 @@ const getAllGames = async () => {
   return infoTotal;
 };
 
-router.get("/videogame", async (req, res) => {
+router.get("/videogame/:id", async (req, res) =>{
+  const id = req.params.id
+  const videogameTotal = await getAllGames()
+  if(id){
+    let videogameId = await videogameTotal.filter( e => e.id == id)
+    videogameId.length ?
+    res.status(200).json(videogameId) :
+    res.status(404).send(`No se encontro un juego asignado al id: ${id}`)
+  }
+})
+
+router.get("/videogames", async (req, res) => {
   try {
     const name = req.query.name;
     let gameTotal = await getAllGames();
@@ -68,12 +79,13 @@ router.get("/videogame", async (req, res) => {
       }
       res.status(404).send(`No hay nada sobre ${name}`);
     } else {
-      res.status(200).send(gameTotal);
+      res.status(200).json(gameTotal);
     }    
   } catch (error) {
     res.status(404).json(error)
   }
 });
+
 router.get("/genres", async (req, res) => {
   //no funciona
   try {
@@ -140,4 +152,5 @@ try {
   next(error)
 }
 })
+
 module.exports = router;
